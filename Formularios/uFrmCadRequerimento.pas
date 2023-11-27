@@ -88,23 +88,22 @@ type
     procedure lstEnderecoDblClick(Sender: TObject);
     procedure btnIncluirServicoClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
- //   procedure dbgPesqServicoDblClick(Sender: TObject);
     procedure edtCodServicoDblClick(Sender: TObject);
-//    procedure lkbMunicipioExit(Sender: TObject);
     procedure edtCodServicoEnter(Sender: TObject);
     procedure edtNomeChange(Sender: TObject);
     procedure lstRequerenteDblClick(Sender: TObject);
-//    procedure Button1Click(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+
 
   private
     { Private declarations }
   protected
 
-    function GetUltimoID_REQUERENTE: Integer;
+ {   function GetUltimoID_REQUERENTE: Integer;
     function GetUltimoID_ENDERECO: Integer;
     function GetUltimoID_PF: Integer;
     function GetUltimoID_Funcionario: Integer;
-    function GetUltimoID_ATENDIMENTO: Integer;
+    function GetUltimoID_ATENDIMENTO: Integer;  }
 
     // gerar numero do protocolo
     function GerarNumeroProtocolo(DataEntrada: TDateTime): string;
@@ -142,7 +141,7 @@ implementation
 
 {$R *.dfm}
 
-uses uDmPrincipal, DadosRequerente, ReqTeste;
+uses uDmPrincipal, DadosRequerente, ReqTeste, uBiblioteca, uFrmPrincipal;
 
 { TFrmCadRequerimento }
 
@@ -213,7 +212,7 @@ begin
   dbgServicos.Columns.Clear;
 
   // Adicione as colunas do DataSet à grade
-  dbgServicos.Columns.Add; // Coluna para 'ID_Servico'
+  dbgServicos.Columns.Add; // Coluna para 'ID_servicos_solicitados'
   dbgServicos.Columns[0].FieldName := 'ID_servicos_solicitados';
   dbgServicos.Columns[0].Title.Caption := 'Item';
 
@@ -221,9 +220,9 @@ begin
   dbgServicos.Columns[1].FieldName := 'Servico';
   dbgServicos.Columns[1].Title.Caption := 'Descrição do Serviço';
 
-  { dbgServicos.Columns.Add; // Coluna para 'ID_Atendimento'
-    dbgServicos.Columns[2].FieldName := 'ID_Atendimento';
-    dbgServicos.Columns[2].Title.Caption := 'ID do Atendimento'; }
+  {dbgServicos.Columns.Add; // Coluna para 'ID_Serviço'
+   dbgServicos.Columns[2].FieldName := 'ID_Servico';
+   dbgServicos.Columns[2].Title.Caption := 'ID do Serviço'; }
 
   // Configure a largura das colunas conforme necessário
   dbgServicos.Columns[0].Width := 80;
@@ -256,10 +255,10 @@ begin
 end;
 
 procedure TFrmCadRequerimento.edtEnderecoChange(Sender: TObject);
-{ var
-  Query: TFDQuery; }
-begin
-  { Query := TFDQuery.Create(nil);
+ var
+  Query: TFDQuery;
+  begin
+   Query := TFDQuery.Create(nil);
     try
     Query.Connection := DmPrincipal.ConexaoBd;
 
@@ -287,7 +286,7 @@ begin
     end;
     finally
     Query.Free;
-    end; }
+    end;
 end;
 
 procedure TFrmCadRequerimento.edtNomeChange(Sender: TObject);
@@ -300,6 +299,13 @@ begin
 
   DadosRequerente.ConsultarPorNome(edtNome.Text, lstRequerente);
 
+end;
+
+procedure TFrmCadRequerimento.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  inherited;
+  FecharAba(Self.Caption,frmPrincipal.pgctPrincipal);
 end;
 
 procedure TFrmCadRequerimento.FormCreate(Sender: TObject);
@@ -347,7 +353,7 @@ begin
   // vamos exibir o resultado
   Result := vNumProtocolo;
 end;
-
+ {
 function TFrmCadRequerimento.GetUltimoID_ATENDIMENTO: Integer;
 var
   Query: TFDQuery;
@@ -362,8 +368,8 @@ begin
   finally
     Query.Free;
   end;
-end;
-
+end; }
+{
 function TFrmCadRequerimento.GetUltimoID_ENDERECO: Integer;
 var
   Query: TFDQuery;
@@ -378,8 +384,8 @@ begin
   finally
     Query.Free;
   end;
-end;
-
+end;  }
+ {
 function TFrmCadRequerimento.GetUltimoID_Funcionario: Integer;
 var
   Query: TFDQuery;
@@ -394,8 +400,8 @@ begin
   finally
     Query.Free;
   end;
-end;
-
+end; }
+{
 function TFrmCadRequerimento.GetUltimoID_PF: Integer;
 var
   Query: TFDQuery;
@@ -410,8 +416,8 @@ begin
   finally
     Query.Free;
   end;
-end;
-
+end;  }
+ {
 function TFrmCadRequerimento.GetUltimoID_REQUERENTE: Integer;
 var
   Query: TFDQuery;
@@ -426,7 +432,7 @@ begin
   finally
     Query.Free;
   end;
-end;
+end;  }
 
 procedure TFrmCadRequerimento.GravarServicosSolicitados;
 var

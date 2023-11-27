@@ -3,7 +3,6 @@ inherited FrmCadRequerimento: TFrmCadRequerimento
   ClientHeight = 547
   ClientWidth = 985
   Font.Height = -13
-  OnClose = nil
   OnCreate = FormCreate
   ExplicitWidth = 985
   ExplicitHeight = 547
@@ -65,10 +64,6 @@ inherited FrmCadRequerimento: TFrmCadRequerimento
         Width = 983
         ExplicitTop = 474
         ExplicitWidth = 983
-        inherited jvibtGravar: TJvImgBtn
-          ExplicitLeft = 14
-          ExplicitTop = 5
-        end
       end
       object pnlRequerente: TPanel
         Left = 0
