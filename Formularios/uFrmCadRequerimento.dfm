@@ -386,6 +386,8 @@ inherited FrmCadRequerimento: TFrmCadRequerimento
         ParentBackground = False
         ParentFont = False
         TabOrder = 3
+        ExplicitLeft = 24
+        ExplicitTop = 143
         object lblLogradouro: TLabel
           Left = 6
           Top = 4
@@ -394,119 +396,142 @@ inherited FrmCadRequerimento: TFrmCadRequerimento
           Caption = 'Logradouro:'
         end
         object lblEndereco: TLabel
-          Left = 157
-          Top = 4
+          Left = 120
+          Top = 6
           Width = 58
           Height = 16
           Caption = 'Endere'#231'o:'
         end
         object lblMunicipio: TLabel
-          Left = 6
-          Top = 64
+          Left = 574
+          Top = 4
           Width = 58
           Height = 16
           Caption = 'Municipio:'
         end
         object lblBairro: TLabel
-          Left = 795
-          Top = 6
+          Left = 6
+          Top = 56
           Width = 34
           Height = 16
           Caption = 'Bairro'
         end
         object lblNum: TLabel
-          Left = 513
+          Left = 425
           Top = 6
           Width = 14
           Height = 16
           Caption = 'N'#186
         end
         object lblComplemento: TLabel
-          Left = 609
-          Top = 6
+          Left = 229
+          Top = 54
           Width = 84
           Height = 16
           Caption = 'Complemento:'
         end
         object lblUf: TLabel
-          Left = 157
-          Top = 64
+          Left = 431
+          Top = 56
           Width = 15
           Height = 16
           Caption = 'UF'
         end
         object lblCep: TLabel
-          Left = 213
-          Top = 64
+          Left = 829
+          Top = 0
           Width = 22
           Height = 16
           Caption = 'CEP'
         end
         object edtCep: TEdit
-          Left = 213
-          Top = 86
+          Left = 819
+          Top = 22
           Width = 130
           Height = 24
           TabOrder = 3
         end
         object edtUF: TEdit
-          Left = 157
-          Top = 86
+          Left = 784
+          Top = 116
           Width = 50
           Height = 24
           TabOrder = 2
         end
         object lstEndereco: TListBox
-          Left = 157
-          Top = 48
-          Width = 350
+          Left = 120
+          Top = 56
+          Width = 278
           Height = 75
           TabOrder = 6
           Visible = False
           OnDblClick = lstEnderecoDblClick
         end
         object edtComplemento: TEdit
-          Left = 609
-          Top = 24
+          Left = 229
+          Top = 72
           Width = 180
           Height = 24
           TabOrder = 0
         end
         object edtBairro: TEdit
-          Left = 795
-          Top = 24
+          Left = 6
+          Top = 78
           Width = 200
           Height = 24
           TabOrder = 1
         end
         object edtEndereco: TEdit
-          Left = 157
-          Top = 24
-          Width = 350
+          Left = 120
+          Top = 26
+          Width = 294
           Height = 24
           TabOrder = 4
           OnChange = edtEnderecoChange
         end
         object edtNum: TEdit
-          Left = 513
+          Left = 425
           Top = 24
           Width = 90
           Height = 24
           TabOrder = 5
         end
         object edtLogradouro: TEdit
-          Left = 6
-          Top = 26
-          Width = 121
+          Left = 854
+          Top = 118
+          Width = 81
           Height = 24
           TabOrder = 7
         end
         object edtMunicipio: TEdit
-          Left = 6
-          Top = 86
-          Width = 121
+          Left = 563
+          Top = 26
+          Width = 241
           Height = 24
           TabOrder = 8
+        end
+        object cbxLogradouro: TComboBox
+          Left = 6
+          Top = 26
+          Width = 108
+          Height = 24
+          TabOrder = 9
+          OnClick = cbxLogradouroClick
+        end
+        object cbxUF: TComboBox
+          Left = 431
+          Top = 78
+          Width = 59
+          Height = 24
+          TabOrder = 10
+          OnClick = cbxUFClick
+        end
+        object lstMunicipio: TListBox
+          Left = 560
+          Top = 56
+          Width = 253
+          Height = 68
+          TabOrder = 11
         end
       end
       object pnlContato: TPanel

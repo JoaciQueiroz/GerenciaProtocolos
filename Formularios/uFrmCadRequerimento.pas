@@ -82,6 +82,9 @@ type
     lstRequerente: TListBox;
     edtLogradouro: TEdit;
     edtMunicipio: TEdit;
+    cbxLogradouro: TComboBox;
+    cbxUF: TComboBox;
+    lstMunicipio: TListBox;
     procedure actGravarExecute(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure edtEnderecoChange(Sender: TObject);
@@ -93,17 +96,18 @@ type
     procedure edtNomeChange(Sender: TObject);
     procedure lstRequerenteDblClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-
+    procedure cbxUFClick(Sender: TObject);
+    procedure cbxLogradouroClick(Sender: TObject);
 
   private
     { Private declarations }
   protected
 
- {   function GetUltimoID_REQUERENTE: Integer;
-    function GetUltimoID_ENDERECO: Integer;
-    function GetUltimoID_PF: Integer;
-    function GetUltimoID_Funcionario: Integer;
-    function GetUltimoID_ATENDIMENTO: Integer;  }
+    { function GetUltimoID_REQUERENTE: Integer;
+      function GetUltimoID_ENDERECO: Integer;
+      function GetUltimoID_PF: Integer;
+      function GetUltimoID_Funcionario: Integer;
+      function GetUltimoID_ATENDIMENTO: Integer; }
 
     // gerar numero do protocolo
     function GerarNumeroProtocolo(DataEntrada: TDateTime): string;
@@ -169,6 +173,16 @@ begin
         edtLotacao.Text, edtLocalTrabalho.Text, edtCargo.Text,
         edtNumProtocolo.Text, tbl_servicos_solicitados);
 
+    end
+    else
+    begin
+      DadosRequerente.GravarRequerimento(ID_REQUERENTE, id_pf, id_funcionario,
+        UltimoID_ATENDIMENTO, ID_Endereco, edtNome.Text, edtNumCPF.Text,
+        edtRg.Text, cbxSexo.Text, edtCelular.Text, edtWhastApp.Text,
+        edtEmail.Text, edtComplemento.Text, edtNum.Text, edtBairro.Text,
+        edtCep.Text, jvDtNascimento.date, jvDtEntrada.date, edtMatricula.Text,
+        edtLotacao.Text, edtLocalTrabalho.Text, edtCargo.Text,
+        edtNumProtocolo.Text, tbl_servicos_solicitados);
     end;
   finally
     DadosRequerente.Free;
@@ -206,6 +220,44 @@ begin
   end;
 end;
 
+procedure TFrmCadRequerimento.cbxLogradouroClick(Sender: TObject);
+begin
+  inherited;
+  ShowMessage('Selecionando Logradouro');
+end;
+
+procedure TFrmCadRequerimento.cbxUFClick(Sender: TObject);
+var
+  DadosRequerente: TDadosRequerente;
+  index, IDEstado, ID_Municipio: Integer;
+  Municipio: string;
+begin
+  inherited;
+  DadosRequerente := TDadosRequerente.Create(DmPrincipal.ConexaoBd);
+
+  index := 1 + cbxUF.ItemIndex;
+
+  // Supondo que você tenha o IDEstado disponível (pode ser obtido da sua fonte de dados)
+  IDEstado := index;
+
+  // Chama a consulta
+  if DadosRequerente.ConsultaMunicipiosPorEstado(IDEstado, ID_Municipio, Municipio) then
+  begin
+    // Adiciona todos os municípios ao ListBox
+    lstMunicipio.Clear;
+    while not DadosRequerente.qryMunicipios.Eof do
+    begin
+     lstMunicipio.Items.Add(Format('%s', [DadosRequerente.qryMunicipios.FieldByName('MUNICIPIO').AsString]));
+     DadosRequerente.qryMunicipios.Next;
+   end;
+  end
+  else
+  begin
+    // Não há municípios para o estado selecionado
+    ShowMessage('Nenhum município encontrado para o estado selecionado.');
+  end;
+end;
+
 procedure TFrmCadRequerimento.ConfigurarColunasGrid;
 begin
   // Limpe as colunas existentes (se houver)
@@ -220,9 +272,9 @@ begin
   dbgServicos.Columns[1].FieldName := 'Servico';
   dbgServicos.Columns[1].Title.Caption := 'Descrição do Serviço';
 
-  {dbgServicos.Columns.Add; // Coluna para 'ID_Serviço'
-   dbgServicos.Columns[2].FieldName := 'ID_Servico';
-   dbgServicos.Columns[2].Title.Caption := 'ID do Serviço'; }
+  { dbgServicos.Columns.Add; // Coluna para 'ID_Serviço'
+    dbgServicos.Columns[2].FieldName := 'ID_Servico';
+    dbgServicos.Columns[2].Title.Caption := 'ID do Serviço'; }
 
   // Configure a largura das colunas conforme necessário
   dbgServicos.Columns[0].Width := 80;
@@ -255,10 +307,10 @@ begin
 end;
 
 procedure TFrmCadRequerimento.edtEnderecoChange(Sender: TObject);
- var
-  Query: TFDQuery;
-  begin
-   Query := TFDQuery.Create(nil);
+{ var
+  Query: TFDQuery; }
+begin
+  { Query := TFDQuery.Create(nil);
     try
     Query.Connection := DmPrincipal.ConexaoBd;
 
@@ -286,7 +338,7 @@ procedure TFrmCadRequerimento.edtEnderecoChange(Sender: TObject);
     end;
     finally
     Query.Free;
-    end;
+    end; }
 end;
 
 procedure TFrmCadRequerimento.edtNomeChange(Sender: TObject);
@@ -305,13 +357,64 @@ procedure TFrmCadRequerimento.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
   inherited;
-  FecharAba(Self.Caption,frmPrincipal.pgctPrincipal);
+  FecharAba(Self.Caption, frmPrincipal.pgctPrincipal);
 end;
 
 procedure TFrmCadRequerimento.FormCreate(Sender: TObject);
+var
+  qryLogradouro, qryUF: TFDQuery;
+//  vIdlogradouro: Integer;
+//  vLogradouro, vCodLogradouro: string;
+
 begin
   inherited;
   vServSolicitado := 0;
+
+//Tras os logradouros para Tcombox - cbxLogradouro
+  qryLogradouro := TFDQuery.Create(nil);
+  qryLogradouro.Connection := DmPrincipal.ConexaoBd;
+
+  qryLogradouro.SQL.Text := 'select id_logradouro, logradouro, cod_logradouro '
+    + 'from tbl_logradouro';
+
+  cbxLogradouro.Items.Clear;
+  qryLogradouro.Close;
+  qryLogradouro.Open;
+  qryLogradouro.First;
+
+  while not qryLogradouro.Eof do
+  begin
+    cbxLogradouro.Items.AddObject(qryLogradouro.FieldByName('logradouro')
+      .AsString, TObject(qryLogradouro.FieldByName('id_logradouro').AsInteger));
+    qryLogradouro.Next;
+  end;
+
+ //Tras as UF para Tcombox - cbxUF
+  qryUF := TFDQuery.Create(nil);
+  qryUF.Connection := DmPrincipal.ConexaoBd;
+
+  qryUF.SQL.Text := 'select id_estado, uf, estado from tbl_estado';
+
+  cbxUF.Items.Clear;
+  qryUF.Close;
+  qryUF.Open;
+  qryUF.First;
+
+  while not qryUF.Eof do
+  begin
+    cbxUF.Items.AddObject(qryUF.FieldByName('uf')
+      .AsString, TObject(qryUF.FieldByName('id_estado').AsInteger));
+    qryUF.Next;
+  end;
+
+
+
+
+
+
+
+
+
   // Crie a tabela de serviços solicitados no FormCreate
   tbl_servicos_solicitados := TFDMemTable.Create(nil);
   tbl_servicos_solicitados.FieldDefs.Add('ID_servicos_solicitados', ftInteger);
@@ -353,86 +456,86 @@ begin
   // vamos exibir o resultado
   Result := vNumProtocolo;
 end;
- {
-function TFrmCadRequerimento.GetUltimoID_ATENDIMENTO: Integer;
-var
-  Query: TFDQuery;
-begin
-  Query := TFDQuery.Create(nil);
-  try
-    Query.Connection := DmPrincipal.ConexaoBd;
-    Query.SQL.Text :=
-      'SELECT COALESCE(MAX(ID_ATENDIMENTO),0)AS LAST_ID FROM TBL_ATENDIMENTO';
-    Query.Open;
-    Result := Query.FieldByName('LAST_ID').AsInteger + 1;
-  finally
-    Query.Free;
-  end;
-end; }
 {
-function TFrmCadRequerimento.GetUltimoID_ENDERECO: Integer;
-var
+  function TFrmCadRequerimento.GetUltimoID_ATENDIMENTO: Integer;
+  var
   Query: TFDQuery;
-begin
+  begin
   Query := TFDQuery.Create(nil);
   try
-    Query.Connection := DmPrincipal.ConexaoBd;
-    Query.SQL.Text :=
-      'SELECT COALESCE(MAX(ID_ENDERECO),0)AS LAST_ID FROM TBL_ENDERECO';
-    Query.Open;
-    Result := Query.FieldByName('LAST_ID').AsInteger + 1;
+  Query.Connection := DmPrincipal.ConexaoBd;
+  Query.SQL.Text :=
+  'SELECT COALESCE(MAX(ID_ATENDIMENTO),0)AS LAST_ID FROM TBL_ATENDIMENTO';
+  Query.Open;
+  Result := Query.FieldByName('LAST_ID').AsInteger + 1;
   finally
-    Query.Free;
+  Query.Free;
   end;
-end;  }
- {
-function TFrmCadRequerimento.GetUltimoID_Funcionario: Integer;
-var
-  Query: TFDQuery;
-begin
-  Query := TFDQuery.Create(nil);
-  try
-    Query.Connection := DmPrincipal.ConexaoBd;
-    Query.SQL.Text :=
-      'SELECT COALESCE(MAX(ID_FUNCIONARIO),0)AS LAST_ID FROM TBL_FUNCIONARIO';
-    Query.Open;
-    Result := Query.FieldByName('LAST_ID').AsInteger + 1;
-  finally
-    Query.Free;
-  end;
-end; }
+  end; }
 {
-function TFrmCadRequerimento.GetUltimoID_PF: Integer;
-var
+  function TFrmCadRequerimento.GetUltimoID_ENDERECO: Integer;
+  var
   Query: TFDQuery;
-begin
+  begin
   Query := TFDQuery.Create(nil);
   try
-    Query.Connection := DmPrincipal.ConexaoBd;
-    Query.SQL.Text :=
-      'SELECT COALESCE(MAX(ID_PESSOA_FISICA),0)AS LAST_ID FROM TBL_PESSOA_FISICA';
-    Query.Open;
-    Result := Query.FieldByName('LAST_ID').AsInteger + 1;
+  Query.Connection := DmPrincipal.ConexaoBd;
+  Query.SQL.Text :=
+  'SELECT COALESCE(MAX(ID_ENDERECO),0)AS LAST_ID FROM TBL_ENDERECO';
+  Query.Open;
+  Result := Query.FieldByName('LAST_ID').AsInteger + 1;
   finally
-    Query.Free;
+  Query.Free;
   end;
-end;  }
- {
-function TFrmCadRequerimento.GetUltimoID_REQUERENTE: Integer;
-var
+  end; }
+{
+  function TFrmCadRequerimento.GetUltimoID_Funcionario: Integer;
+  var
   Query: TFDQuery;
-begin
+  begin
   Query := TFDQuery.Create(nil);
   try
-    Query.Connection := DmPrincipal.ConexaoBd;
-    Query.SQL.Text :=
-      'SELECT COALESCE(MAX(ID_REQUERENTE),0)AS LAST_ID FROM TBL_REQUERENTE';
-    Query.Open;
-    Result := Query.FieldByName('LAST_ID').AsInteger + 1;
+  Query.Connection := DmPrincipal.ConexaoBd;
+  Query.SQL.Text :=
+  'SELECT COALESCE(MAX(ID_FUNCIONARIO),0)AS LAST_ID FROM TBL_FUNCIONARIO';
+  Query.Open;
+  Result := Query.FieldByName('LAST_ID').AsInteger + 1;
   finally
-    Query.Free;
+  Query.Free;
   end;
-end;  }
+  end; }
+{
+  function TFrmCadRequerimento.GetUltimoID_PF: Integer;
+  var
+  Query: TFDQuery;
+  begin
+  Query := TFDQuery.Create(nil);
+  try
+  Query.Connection := DmPrincipal.ConexaoBd;
+  Query.SQL.Text :=
+  'SELECT COALESCE(MAX(ID_PESSOA_FISICA),0)AS LAST_ID FROM TBL_PESSOA_FISICA';
+  Query.Open;
+  Result := Query.FieldByName('LAST_ID').AsInteger + 1;
+  finally
+  Query.Free;
+  end;
+  end; }
+{
+  function TFrmCadRequerimento.GetUltimoID_REQUERENTE: Integer;
+  var
+  Query: TFDQuery;
+  begin
+  Query := TFDQuery.Create(nil);
+  try
+  Query.Connection := DmPrincipal.ConexaoBd;
+  Query.SQL.Text :=
+  'SELECT COALESCE(MAX(ID_REQUERENTE),0)AS LAST_ID FROM TBL_REQUERENTE';
+  Query.Open;
+  Result := Query.FieldByName('LAST_ID').AsInteger + 1;
+  finally
+  Query.Free;
+  end;
+  end; }
 
 procedure TFrmCadRequerimento.GravarServicosSolicitados;
 var
@@ -446,7 +549,7 @@ begin
     Query.Prepare;
 
     tbl_servicos_solicitados.First;
-    while not tbl_servicos_solicitados.EOF do
+    while not tbl_servicos_solicitados.Eof do
     begin
       Query.ParamByName('ID_Atendimento').AsInteger :=
         tbl_servicos_solicitados.FieldByName('ID_Atendimento').AsInteger;

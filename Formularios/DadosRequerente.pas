@@ -15,6 +15,11 @@ type
     FTransaction: TFDTransaction;
     function GerarNumeroProtocolo(DataEntrada: TDateTime): string;
     function GetUltimoID_ATENDIMENTO: Integer;
+    function GetUltimoID_REQUERENTE: Integer;
+    function GetUltimoID_PF: Integer;
+    function GetUltimoID_Funcionario: Integer;
+    function GetUltimoID_ENDERECO: Integer;
+
 
   var
 
@@ -46,9 +51,21 @@ type
       var Nome, Cpf: string): Boolean;
     function IDRequerenteJaExiste(IDRequerente: Integer): Boolean;
 
+    function ConsultaMunicipiosPorEstado(IDEstado: Integer;
+    out ID_Municipio: Integer; out Municipio: string): Boolean;
+
+
+
+
+
+    function ConsultaLogradouro(const IDLogradouro: Integer;
+    var id_logradouro: Integer; const logradouro,cod_logradouro: string):Boolean;
+
+    procedure RetornaUF;
+
   var
     // Variaveis caso o requerente já esteja cadastrado
-    vIDRequerente, vIDPFisica, vIDEndereco, vIDFuncionario: Integer;
+    vIDRequerente, vIDPFisica, vIDEndereco, vIDFuncionario, vIDEsttado, vIDLogradouro: Integer;
 
     // Variaveis caso  seja um novo requerente
     vUtiID_REQUERENTE, vUtiID_ENDERECO, vUtiID_PF, vUtiID_Funcionario: Integer;
@@ -58,7 +75,7 @@ type
     // variarvel do Id da Secretaria solicitante
     vID_SECRETARIA: Integer;
     // variavel para pesquisa por nome
-    qryConstNome: TFDQuery;
+    qryConstNome, qryMunicipios: TFDQuery;
 
   end;
 
@@ -111,6 +128,68 @@ begin
   end;
 end;
 
+function TDadosRequerente.ConsultaLogradouro(const IDLogradouro: Integer;
+  var id_logradouro: Integer; const logradouro,
+  cod_logradouro: string): Boolean;
+
+ var
+qryLogradouro: TFDQuery;
+
+begin
+   qryLogradouro := TFDQuery.Create(nil);
+   try
+   qryLogradouro.Connection := FConnection;
+   qryLogradouro.Close;
+   qryLogradouro.SQL.Text := 'select id_logradouro,logradouro, cod_logradouro '+
+    'from tbl_logradouro lg ';
+   qryLogradouro.Open;
+    if not qryLogradouro.IsEmpty then
+    begin
+      Result := True;
+    end
+    else
+    begin
+      Result := False;
+    end;
+  finally
+    qryLogradouro.Free;
+  end;
+end;
+
+function TDadosRequerente.ConsultaMunicipiosPorEstado(IDEstado: Integer;
+  out ID_Municipio: Integer; out Municipio: string): Boolean;
+//var
+  //qryMunicipios: TFDQuery;
+begin
+  qryMunicipios := TFDQuery.Create(nil);
+  try
+    qryMunicipios.Connection := FConnection;
+
+    qryMunicipios.SQL.Text :=
+      'SELECT ID_MUNICIPIO, IDESTADO, MUNICIPIO ' +
+      'FROM TBL_MUNICIPIO ' +
+      'WHERE IDESTADO = :pIDESTADO;';
+
+    qryMunicipios.Params.ParamByName('pIDESTADO').AsInteger := IDEstado;
+    qryMunicipios.Open;
+
+    if not qryMunicipios.IsEmpty then
+    begin
+      ID_Municipio := qryMunicipios.FieldByName('ID_MUNICIPIO').AsInteger;
+	    IDESTADO := qryMunicipios.FieldByName('IDESTADO').AsInteger;
+      Municipio := qryMunicipios.FieldByName('MUNICIPIO').AsString;
+      Result := True;
+    end
+    else
+    begin
+      // Não há municípios para o estado fornecido
+      Result := False;
+    end;
+  finally
+   // qryMunicipios.Free;
+  end;
+end;
+
 function TDadosRequerente.ConsultaReqId(const IDRequerente: Integer;
   var Id_PF, Id_fn, Id_En: Integer): Boolean;
 
@@ -118,7 +197,6 @@ var
   qryConstReqId: TFDQuery;
 
 begin
-
   qryConstReqId := TFDQuery.Create(nil);
   try
     qryConstReqId.Connection := FConnection;
@@ -301,6 +379,70 @@ begin
   end;
 end;
 
+function TDadosRequerente.GetUltimoID_ENDERECO: Integer;
+var
+  Query: TFDQuery;
+begin
+  Query := TFDQuery.Create(nil);
+  try
+    Query.Connection := DmPrincipal.ConexaoBd;
+    Query.SQL.Text :=
+      'SELECT COALESCE(MAX(ID_ENDERECO),0)AS LAST_ID FROM TBL_ENDERECO';
+    Query.Open;
+    Result := Query.FieldByName('LAST_ID').AsInteger + 1;
+  finally
+    Query.Free;
+  end;
+end;
+
+function TDadosRequerente.GetUltimoID_Funcionario: Integer;
+var
+  Query: TFDQuery;
+begin
+  Query := TFDQuery.Create(nil);
+  try
+    Query.Connection := DmPrincipal.ConexaoBd;
+    Query.SQL.Text :=
+      'SELECT COALESCE(MAX(ID_FUNCIONARIO),0)AS LAST_ID FROM TBL_FUNCIONARIO';
+    Query.Open;
+    Result := Query.FieldByName('LAST_ID').AsInteger + 1;
+  finally
+    Query.Free;
+  end;
+end;
+
+function TDadosRequerente.GetUltimoID_PF: Integer;
+var
+  Query: TFDQuery;
+begin
+  Query := TFDQuery.Create(nil);
+  try
+    Query.Connection := DmPrincipal.ConexaoBd;
+    Query.SQL.Text :=
+      'SELECT COALESCE(MAX(ID_PESSOA_FISICA),0)AS LAST_ID FROM TBL_PESSOA_FISICA';
+    Query.Open;
+    Result := Query.FieldByName('LAST_ID').AsInteger + 1;
+  finally
+    Query.Free;
+  end;
+end;
+
+function TDadosRequerente.GetUltimoID_REQUERENTE: Integer;
+var
+  Query: TFDQuery;
+begin
+  Query := TFDQuery.Create(nil);
+  try
+    Query.Connection := DmPrincipal.ConexaoBd;
+    Query.SQL.Text :=
+      'SELECT COALESCE(MAX(ID_REQUERENTE),0)AS LAST_ID FROM TBL_REQUERENTE';
+    Query.Open;
+    Result := Query.FieldByName('LAST_ID').AsInteger + 1;
+  finally
+    Query.Free;
+  end;
+end;
+
 procedure TDadosRequerente.GravarRequerimento(const ID_REQUERENTE, Id_PF,
   ID_Funcionario, ID_ATENDIMENTO, ID_Endereco: Integer;
   const edtNome, edtNumCPF, edtRg, cbxSexo, edtCelular, edtWhastApp, edtEmail,
@@ -310,13 +452,14 @@ procedure TDadosRequerente.GravarRequerimento(const ID_REQUERENTE, Id_PF,
   tbl_servicos_solicitados: TFDMemTable);
 
 var
-  qryCadRequerimento, qryServSolicitado: TFDQuery;
+  qryCadRequerimento, qryServSolicitado, qryCadEndereco: TFDQuery;
   Sucesso: Boolean;
   //vIdfuncAtualiza, vIdPFAtualiza: Integer;
 
 begin
   qryCadRequerimento := TFDQuery.Create(nil);
   qryServSolicitado := TFDQuery.Create(nil);
+  qryCadEndereco := TFDQuery.Create(nil);
 
   try
     qryCadRequerimento.Connection := FConnection;
@@ -383,14 +526,35 @@ begin
       else
       begin
         // populando a tabela de REQUERENTE
+       ShowMessage('Requerente não cadastrado');
+       //gerando os Ids para novos registros
+       vUtiID_REQUERENTE := GetUltimoID_REQUERENTE;
+       vUtiID_ENDERECO := GetUltimoID_ENDERECO;
+       vUtiID_PF := GetUltimoID_PF;
+       vUtiID_Funcionario := GetUltimoID_Funcionario;
+
+       // populando a tabela endereço
+        qryCadEndereco.SQL.Text :=
+          'INSERT INTO tbl_endereco (id_endereco, id_municipio, id_logradouro, endereco) '
+          + 'VALUES (:id_endereco, :id_municipio, :id_logradouro, :endereco);';
+
+        qryCadEndereco.Params.ParamByName('id_endereco').AsInteger := vUtiID_ENDERECO;
+        qryCadEndereco.Params.ParamByName('id_municipio').AsInteger := 1;
+        qryCadEndereco.Params.ParamByName('id_logradouro').AsInteger := 1;
+       // qryCadEndereco.Params.ParamByName('endereco').AsString := edt;
+        qryCadEndereco.ExecSQL;
+
 
         qryCadRequerimento.SQL.Text :=
-          'INSERT INTO TBL_REQUERENTE (ID_REQUERENTE, ID_TP_PESSOA, ID_ENDERECO, NOME, DATA_NASCIMENTO, CELULAR, WHATSAPP, EMAIL, COMPLEMENTO, NUMERO, BAIRRO, CEP, DATA_CADASTRO) '
-          + 'VALUES (:ID_REQUERENTE, :ID_TP_PESSOA, :ID_ENDERECO, :NOME, :DATA_NASCIMENTO, :CELULAR, :WHATSAPP, :EMAIL, :COMPLEMENTO, :NUMERO, :BAIRRO, :CEP, :DATA_CADASTRO);';
+          'INSERT INTO TBL_REQUERENTE (ID_REQUERENTE, ID_TP_PESSOA, ID_ENDERECO, NOME, '+
+          'DATA_NASCIMENTO, CELULAR, WHATSAPP, EMAIL, COMPLEMENTO, NUMERO, BAIRRO, CEP, '+
+          'DATA_CADASTRO) VALUES (:ID_REQUERENTE, :ID_TP_PESSOA, :ID_ENDERECO, :NOME, '+
+          ':DATA_NASCIMENTO, :CELULAR, :WHATSAPP, :EMAIL, :COMPLEMENTO, :NUMERO, :BAIRRO, '+
+          ':CEP, :DATA_CADASTRO);';
 
         qryCadRequerimento.Params.ParamByName('ID_REQUERENTE').AsInteger := vUtiID_REQUERENTE;
         qryCadRequerimento.Params.ParamByName('ID_TP_PESSOA').AsInteger := 1;
-        qryCadRequerimento.Params.ParamByName('ID_ENDERECO').AsInteger := vIDEndereco;
+        qryCadRequerimento.Params.ParamByName('ID_ENDERECO').AsInteger := vUtiID_ENDERECO;
         qryCadRequerimento.Params.ParamByName('NOME').AsString := edtNome;
         qryCadRequerimento.Params.ParamByName('DATA_NASCIMENTO').asDate := jvDtNascimento;
         qryCadRequerimento.Params.ParamByName('CELULAR').AsString := edtCelular;
@@ -505,6 +669,25 @@ begin
   finally
     Query.Free;
   end;
+end;
+
+procedure TDadosRequerente.RetornaUF;
+var
+qryBuscaUF: TFDQuery;
+begin
+ qryBuscaUF := TFDQuery.Create(nil);
+ try
+  qryBuscaUF.Connection := FConnection;
+  qryBuscaUF.SQL.Text := 'select id_municipio, idestado, municipio '+
+             'from tbl_municipio  where idestado = :pIdEstado';
+  qryBuscaUF.Params.ParamByName('pIdEstado').AsInteger := vIDEsttado;
+  qryBuscaUF.Close;
+  qryBuscaUF.Open;
+
+ finally
+
+ end;
+
 end;
 
 function TDadosRequerente.TextoSelecionado(const Text: string; var ID: Integer;
